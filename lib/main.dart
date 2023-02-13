@@ -1,72 +1,118 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-void main() => runApp(const MyApp());
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
-      theme: ThemeData(scaffoldBackgroundColor: const Color(0xFF111111)),
-      debugShowCheckedModeBanner: false, //gets rid of debug banner
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Center(child:Text("AVA")),
-          backgroundColor: const Color(0xFF333333),
-        ),
-        body:
-        Center(
-          child:
-          ElevatedButton(
-            onPressed: () {
-              print("Button Pressed!!!!!!!");//API Request to gpt here
-       },
-            style: ButtonStyle(
-              shape: MaterialStateProperty.all(const CircleBorder()),
-              padding: MaterialStateProperty.all(const EdgeInsets.all(100)),
-              backgroundColor: MaterialStateProperty.all(const Color(0xFF333333)), // <-- Button color
-              overlayColor: MaterialStateProperty.resolveWith<Color?>((states) {
-                if (states.contains(MaterialState.pressed)) return const Color(0xFF666666); // <-- Splash color
-              }),
-            ),
-            child: const Icon(Icons.mic),
-          ),
-        ),
+      title: 'AVA',
+      theme: ThemeData(
+          primaryColor: Colors.purple,
+      ),
+      debugShowCheckedModeBanner: false,
+      home: ChatGPTPage(),
+    );
+  }
+}
 
+class ChatGPTPage extends StatefulWidget {
+  const ChatGPTPage({super.key});
+
+  @override
+  _ChatGPTPageState createState() => _ChatGPTPageState();
+}
+
+class _ChatGPTPageState extends State<ChatGPTPage> {
+  final _inputController = TextEditingController();
+  final _outputController = TextEditingController();
+
+  void _submitRequest() async {
+    String input = _inputController.text;
+    String output = await getResponseFromChatGPT(input);
+
+    setState(() {
+      _outputController.text = output;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('AVA'),
+        centerTitle: true),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            TextField(
+              controller: _inputController,
+              decoration: const InputDecoration(
+                hintText: 'Enter your request here',
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: _submitRequest,
+              child: const Text('Submit Request'),
+            ),
+            const SizedBox(height: 16.0),
+            Expanded(
+              child: SingleChildScrollView(
+                child: TextField(
+                  controller: _outputController,
+                  decoration: const InputDecoration(
+                    hintText: 'ChatGPT response will appear here',
+                  ),
+                  readOnly: true,
+                  maxLines: null,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class MyCustomForm extends StatelessWidget {
-  const MyCustomForm({super.key});
+Future<String> getResponseFromChatGPT(String input) async {
+  String apiUrl = 'https://api.openai.com/v1/completions';
+  String apiKey = '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'; //CHANGE THIS KEY IF YOU ARE FORKING THIS
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-          child: TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Enter a search term',
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-          child: TextFormField(
-            decoration: const InputDecoration(
-              border: UnderlineInputBorder(),
-              labelText: 'Enter your username',
-            ),
-          ),
-        ),
-      ],
+  Map<String, String> headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer $apiKey',
+  };
+
+  Map<String, dynamic> requestBody = {
+    "model": "text-davinci-003",
+    "prompt": input,
+    "temperature": 0,
+    "max_tokens": 100,
+  };
+
+  try {
+    http.Response response = await http.post(
+      Uri.parse(apiUrl),
+      headers: headers,
+      body: json.encode(requestBody),
     );
+
+    print("<>>>>>>>>>>>>>>>>>>>>>>>>> ${response.body} <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> responseJson = json.decode(response.body);
+      return responseJson['choices'][0]['text'];
+    } else {
+      return 'Request failed with status code: ${response.statusCode}';
+    }
+  } catch (e) {
+    return 'Request failed with error: $e';
   }
 }
