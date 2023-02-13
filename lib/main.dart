@@ -12,10 +12,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'AVA',
       theme: ThemeData(
-          primaryColor: Colors.purple,
+        primarySwatch: Colors.teal,
+        scaffoldBackgroundColor: const Color(0xFF737373),
       ),
       debugShowCheckedModeBanner: false,
-      home: ChatGPTPage(),
+
+      home: const ChatGPTPage(),
     );
   }
 }
@@ -55,6 +57,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
               decoration: const InputDecoration(
                 hintText: 'Enter your request here',
               ),
+              style: const TextStyle(color: Colors.white),
             ),
             const SizedBox(height: 16.0),
             ElevatedButton(
@@ -71,6 +74,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                   ),
                   readOnly: true,
                   maxLines: null,
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
             ),
@@ -83,7 +87,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
 
 Future<String> getResponseFromChatGPT(String input) async {
   String apiUrl = 'https://api.openai.com/v1/completions';
-  String apiKey = 'YOUR API KEY HERE'; //CHANGE THIS KEY IF YOU ARE FORKING THIS
+  String apiKey = 'YOUR API KEY HERE';
+  // String apiKey = ''; //CHANGE THIS KEY IF YOU ARE FORKING THIS
 
   Map<String, String> headers = {
     'Content-Type': 'application/json',
