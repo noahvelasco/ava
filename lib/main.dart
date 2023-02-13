@@ -83,7 +83,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
 
 Future<String> getResponseFromChatGPT(String input) async {
   String apiUrl = 'https://api.openai.com/v1/completions';
-  String apiKey = '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'; //CHANGE THIS KEY IF YOU ARE FORKING THIS
+  String apiKey = 'YOUR API KEY HERE'; //CHANGE THIS KEY IF YOU ARE FORKING THIS
 
   Map<String, String> headers = {
     'Content-Type': 'application/json',
