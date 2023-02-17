@@ -1,6 +1,23 @@
+/*
+       Color palette
+
+-------- lighter nude
+Hex: E9A495
+RGB:(233,164,149)
+
+-------- grey/blue
+Hex: 424d55
+rgb(66, 77, 85)
+
+-------- lighter nude
+HEX: e8dbce
+rgb(232, 219, 206)
+
+ */
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'palette.dart';
 
 void main() => runApp(MyApp());
 
@@ -10,10 +27,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'A.V.A',
+      title: 'AVA',
       theme: ThemeData(
-          primarySwatch: Colors.purple,
-          scaffoldBackgroundColor: Colors.white // const Color(0xFF000000),
+          primarySwatch: Palette.maincolors, //Palette.nude,
+          scaffoldBackgroundColor:
+              Palette.maincolors.shade50 // const Color(0xFF000000),
           ),
       debugShowCheckedModeBanner: false,
       home: const ChatGPTPage(),
@@ -48,25 +66,41 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(title: const Text('AVA'), centerTitle: true),
+      appBar: null,// AppBar(title: const Text('AVA'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 80.0),
+              padding: const EdgeInsets.only(bottom: 50),
+              child: Image.asset(
+                'assets/images/logo-no-background.png',
+                fit: BoxFit.fitHeight, // set the fit property according to your needs
+                height: 70,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 50.0),
               child: TextFormField(
                 controller: _inputController,
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
+                  enabledBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF424d55)),
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF424d55)),
+                  ),
                   labelText: 'Enter your question here',
+                  labelStyle: const TextStyle(color: Color(0xFF424d55)),
                   suffixIcon: IconButton(
                     onPressed: _inputController.clear,
                     icon: const Icon(Icons.clear),
+                    color: Palette.maincolors.shade100,
                   ),
                 ),
-                style: const TextStyle(color: Color(0xFF000000)),
+                style: const TextStyle(color: Color(0xFF424d55)),
                 keyboardType: TextInputType.multiline,
                 minLines: 1,
                 maxLines: 3,
@@ -76,15 +110,11 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
               onPressed: _submitRequest,
               style: IconButton.styleFrom(
                 padding: const EdgeInsets.all(35.0),
-                foregroundColor: Colors.green,
-                //colors.onSecondaryContainer,
-                backgroundColor: Colors.white,
-                //colors.secondaryContainer,
+                foregroundColor: Palette.maincolors.shade100,
+                backgroundColor: Palette.maincolors,
                 hoverColor: Colors.green.withOpacity(0.50),
-                //colors.onSecondaryContainer.withOpacity(0.50),
                 highlightColor: Colors.green.withOpacity(0.30),
-                //colors.onSecondaryContainer.withOpacity(0.12),
-                side: const BorderSide(width: 2, color: Colors.green),
+                side: const BorderSide(width: 2, color: Color(0xFF424d55)),
               ),
               child: const Icon(Icons.send),
             ),
@@ -92,8 +122,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
               padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
               child: _isLoading
                   ? const CircularProgressIndicator(
-                      backgroundColor: Colors.purple,
-                      color: Colors.green,
+                      backgroundColor: Color(0xFF424d55),
+                      color: Color(0xFFE9A495),
                       strokeWidth: 5,
                     )
                   : null,
@@ -105,10 +135,18 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                   controller: _outputController,
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(),
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF424d55)),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF424d55)),
+                    ),
                     labelText: 'AVA\'s Answer',
+                    labelStyle: const TextStyle(color: Color(0xFF424d55)),
                     suffixIcon: IconButton(
                       onPressed: _outputController.clear,
                       icon: const Icon(Icons.clear),
+                      color: Palette.maincolors.shade100,
                     ),
                   ),
                   readOnly: true,
@@ -153,10 +191,9 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
         body: json.encode(requestBody),
       );
 
-      print(
-          "<>>>>>>>>>>>>>>>>>>>>>>>>>\n "
-              "${response.body}"
-              "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+      print("<>>>>>>>>>>>>>>>>>>>>>>>>>\n "
+          "${response.body}"
+          "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 
       setState(() {
         _isLoading = false;

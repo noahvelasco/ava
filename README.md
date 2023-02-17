@@ -1,3 +1,5 @@
+![image info](./assets/images/logo-no-background.png)
+
 # A.V.A - Advanced Virtual Agent
 
 *AVA* stands for ***advanced virtual agent*** and is meant to help anyone with quick/on-tap question handling. Created by Noah Velasco, AVA started as a personal project and will continue to be supported in hopes of one day including it in headphone support like Amazon Alexa or Google Assistant (perhaps even AR). This repository can be used by anyone however requires an API key anyone can generate from OpenAI for free. The goal is to create a plug and play virtual agent that anyone can use with minor constraints such as the overall UI/UX experience.
