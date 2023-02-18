@@ -15,8 +15,14 @@ rgb(232, 219, 206)
 
  */
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:audioplayers/audioplayers.dart';
+import 'package:path_provider/path_provider.dart';
+
+// import 'package:audioplayers/audio_cache.dart';
 import 'palette.dart';
 
 void main() => runApp(MyApp());
@@ -62,11 +68,15 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
     });
   }
 
+  void _playOutput() async {
+    await playTextToSpeech(_outputController.text);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: null,// AppBar(title: const Text('AVA'), centerTitle: true),
+      appBar: null, // AppBar(title: const Text('AVA'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
         child: Column(
@@ -76,7 +86,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
               padding: const EdgeInsets.only(bottom: 50),
               child: Image.asset(
                 'assets/images/logo-no-background.png',
-                fit: BoxFit.fitHeight, // set the fit property according to your needs
+                fit: BoxFit.fitHeight,
+                // set the fit property according to your needs
                 height: 70,
               ),
             ),
@@ -92,7 +103,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                   focusedBorder: const OutlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFF424d55)),
                   ),
-                  labelText: 'Enter your question here',
+                  labelText: 'Enter any question here...',
                   labelStyle: const TextStyle(color: Color(0xFF424d55)),
                   suffixIcon: IconButton(
                     onPressed: _inputController.clear,
@@ -141,7 +152,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: Color(0xFF424d55)),
                     ),
-                    labelText: 'AVA\'s Answer',
+                    labelText: 'The answer is 42...jk',
                     labelStyle: const TextStyle(color: Color(0xFF424d55)),
                     suffixIcon: IconButton(
                       onPressed: _outputController.clear,
@@ -155,7 +166,22 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                 ),
               ),
             ),
+
+            // FloatingActionButton(
+
+            //     onPressed: playTextToSpeech(_outputController.text),
+            //     child: Icon(Icons.volume_up),
+            // )
           ],
+        ),
+      ), //body
+      floatingActionButton: Align(
+        alignment: Alignment.bottomRight,
+        child: FloatingActionButton(
+          foregroundColor: const Color(0xFF000000),
+          backgroundColor: const Color(0xFFE9A495),
+          onPressed: _playOutput ,
+          child: const Icon(Icons.volume_up),
         ),
       ),
     );
@@ -168,8 +194,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       _outputController.text = '';
     });
 
-    String apiUrl = 'https://api.openai.com/v1/completions';
     String apiKey = 'YOUR API KEY HERE';
+    String apiUrl = 'https://api.openai.com/v1/completions';
 
     Map<String, String> headers = {
       'Content-Type': 'application/json',
@@ -181,7 +207,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       "model": "text-davinci-003",
       "prompt": input,
       "temperature": .5,
-      "max_tokens": 100,
+      "max_tokens": 200,
     };
 
     try {
@@ -211,4 +237,40 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       return 'Request failed with error: $e';
     }
   } //get response from chatgpt future function
+
+  //For the Text To Speech
+  Future<void> playTextToSpeech(String text) async {
+    String apiKey = 'YOUR_API_KEY';
+    String url =
+        'https://api.eleven-labs.com/api/tts/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM';
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $apiKey',
+      },
+      body: json.encode({
+        'text': text,
+        "voice_settings": {
+          "stability": 20,
+          "similarity_boost": 80
+        }
+        // 'voice': 'en-US',
+        // 'audio_format': 'mp3',
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final bytes = response.bodyBytes;
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/audio.mp3');
+      await tempFile.writeAsBytes(bytes);
+
+      final audioPlayer = AudioPlayer();
+      await audioPlayer.play(tempFile.path as Source);
+    } else {
+      throw Exception('Failed to load audio');
+    }
+  } //getResponse from Eleven Labs
 } //class chatgptpage state
