@@ -8,7 +8,7 @@
 
 ## Features & Goals
 1. Basic input and output - DONE
-2. Text-To-Speech (using ElevenLabs API) - TODO
+2. Text-To-Speech (using ElevenLabs API) - DONE
 3. Microphone capabilities - TODO
 4. Graphics showing human visual assistant  - TODO
 5. The ability to converse with assistant like Amazon Alexa  - TODO
