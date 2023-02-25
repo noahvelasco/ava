@@ -15,14 +15,10 @@ rgb(232, 219, 206)
 
  */
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:audioplayers/audioplayers.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:just_audio/just_audio.dart';
 
-// import 'package:audioplayers/audio_cache.dart';
 import 'palette.dart';
 
 void main() => runApp(MyApp());
@@ -53,6 +49,7 @@ class ChatGPTPage extends StatefulWidget {
 }
 
 class _ChatGPTPageState extends State<ChatGPTPage> {
+  final player = AudioPlayer(); //for text to speech
   final _inputController = TextEditingController();
   final _outputController = TextEditingController();
   bool _isLoading = false; //for progress indicator
@@ -71,6 +68,90 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
   void _playOutput() async {
     await playTextToSpeech(_outputController.text);
   }
+
+
+  Future<String> getResponseFromChatGPT(String input) async {
+    //display the loading screen while we wait for request
+    setState(() {
+      _isLoading = true; //progress indicator
+      _outputController.text = '';
+    });
+
+    String apiKey = 'YOUR API KEY HERE';
+    String apiUrl = 'https://api.openai.com/v1/completions';
+
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $apiKey',
+    };
+
+    //ChatGPT's params can be modified here
+    Map<String, dynamic> requestBody = {
+      "model": "text-davinci-003",
+      "prompt": input,
+      "temperature": .5,
+      "max_tokens": 200,
+    };
+
+    try {
+      http.Response response = await http.post(
+        Uri.parse(apiUrl),
+        headers: headers,
+        body: json.encode(requestBody),
+      );
+
+
+      setState(() {
+        _isLoading = false;
+      });
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseJson = json.decode(response.body);
+        String answer = responseJson['choices'][0]['text'];
+        answer = answer.substring(
+            2); // removed the newline characters from beginning of response
+        return answer;
+      } else {
+        return 'Request failed with status code: ${response.statusCode}';
+      }
+    } catch (e) {
+      return 'Request failed with error: $e';
+    }
+  } //get response from chatgpt future function
+
+
+  //For the Text To Speech
+  Future<void> playTextToSpeech(String text) async {
+    String apiKey = 'YOUR_API_KEY';
+    String url =
+        'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM';
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'accept': 'audio/mpeg',
+        'xi-api-key': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        "text": text,
+        "voice_settings": {
+          "stability": .15,
+          "similarity_boost": .5
+        }
+
+      }),
+    );
+
+
+
+    if (response.statusCode == 200) {
+
+      final bytes = response.bodyBytes; //get the bytes ElevenLabs sent back
+      await player.setAudioSource(MyCustomSource(bytes)); //send the bytes to be read from the JustAudio library
+      player.play(); //play the audio
+    } else {
+      throw Exception('Failed to load audio');
+    }
+  } //getResponse from Eleven Labs
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +233,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: Color(0xFF424d55)),
                     ),
-                    labelText: 'The answer is 42...jk',
+                    labelText: 'Your Answer Here',
                     labelStyle: const TextStyle(color: Color(0xFF424d55)),
                     suffixIcon: IconButton(
                       onPressed: _outputController.clear,
@@ -187,90 +268,23 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
     );
   }
 
-  Future<String> getResponseFromChatGPT(String input) async {
-    //display the loading screen while we wait for request
-    setState(() {
-      _isLoading = true; //progress indicator
-      _outputController.text = '';
-    });
-
-    String apiKey = 'YOUR API KEY HERE';
-    String apiUrl = 'https://api.openai.com/v1/completions';
-
-    Map<String, String> headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $apiKey',
-    };
-
-    //ChatGPT's params can be modified here
-    Map<String, dynamic> requestBody = {
-      "model": "text-davinci-003",
-      "prompt": input,
-      "temperature": .5,
-      "max_tokens": 200,
-    };
-
-    try {
-      http.Response response = await http.post(
-        Uri.parse(apiUrl),
-        headers: headers,
-        body: json.encode(requestBody),
-      );
-
-      print("<>>>>>>>>>>>>>>>>>>>>>>>>>\n "
-          "${response.body}"
-          "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-
-      setState(() {
-        _isLoading = false;
-      });
-      if (response.statusCode == 200) {
-        Map<String, dynamic> responseJson = json.decode(response.body);
-        String answer = responseJson['choices'][0]['text'];
-        answer = answer.substring(
-            2); // removed the newline characters from beginning of response
-        return answer;
-      } else {
-        return 'Request failed with status code: ${response.statusCode}';
-      }
-    } catch (e) {
-      return 'Request failed with error: $e';
-    }
-  } //get response from chatgpt future function
-
-  //For the Text To Speech
-  Future<void> playTextToSpeech(String text) async {
-    String apiKey = 'YOUR_API_KEY';
-    String url =
-        'https://api.eleven-labs.com/api/tts/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM';
-
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
-      },
-      body: json.encode({
-        'text': text,
-        "voice_settings": {
-          "stability": 20,
-          "similarity_boost": 80
-        }
-        // 'voice': 'en-US',
-        // 'audio_format': 'mp3',
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final bytes = response.bodyBytes;
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/audio.mp3');
-      await tempFile.writeAsBytes(bytes);
-
-      final audioPlayer = AudioPlayer();
-      await audioPlayer.play(tempFile.path as Source);
-    } else {
-      throw Exception('Failed to load audio');
-    }
-  } //getResponse from Eleven Labs
 } //class chatgptpage state
+
+// Feed your own stream of bytes into the player - Taken from JustAudio package
+class MyCustomSource extends StreamAudioSource {
+  final List<int> bytes;
+  MyCustomSource(this.bytes);
+
+  @override
+  Future<StreamAudioResponse> request([int? start, int? end]) async {
+    start ??= 0;
+    end ??= bytes.length;
+    return StreamAudioResponse(
+      sourceLength: bytes.length,
+      contentLength: end - start,
+      offset: start,
+      stream: Stream.value(bytes.sublist(start, end)),
+      contentType: 'audio/mpeg',
+    );
+  }
+}
