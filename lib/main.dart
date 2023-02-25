@@ -1,21 +1,6 @@
-/*
-       Color palette
-
--------- lighter nude
-Hex: E9A495
-RGB:(233,164,149)
-
--------- grey/blue
-Hex: 424d55
-rgb(66, 77, 85)
-
--------- lighter nude
-HEX: e8dbce
-rgb(232, 219, 206)
-
- */
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 
@@ -31,9 +16,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'AVA',
       theme: ThemeData(
-          primarySwatch: Palette.maincolors, //Palette.nude,
+          primarySwatch: Palette.clrs,
           scaffoldBackgroundColor:
-              Palette.maincolors.shade50 // const Color(0xFF000000),
+          Palette.clrs.shade50,
           ),
       debugShowCheckedModeBanner: false,
       home: const ChatGPTPage(),
@@ -52,7 +37,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
   final player = AudioPlayer(); //for text to speech
   final _inputController = TextEditingController();
   final _outputController = TextEditingController();
-  bool _isLoading = false; //for progress indicator
+  bool _isLoadingResp = false; //progress indicator counter for gpt response
+  bool _isLoadingVoice = false; //progress indicator counter for voice
 
   void _submitRequest() async {
     FocusManager.instance.primaryFocus
@@ -60,20 +46,25 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
     String input = _inputController.text;
     String output = await getResponseFromChatGPT(input);
     setState(() {
-      _isLoading = false; //progress indicator
+      _isLoadingResp = false; //progress indicator
       _outputController.text = output;
     });
   }
 
   void _playOutput() async {
     await playTextToSpeech(_outputController.text);
+
+    setState(() {
+      _isLoadingVoice = false;
+    });
+
   }
 
 
   Future<String> getResponseFromChatGPT(String input) async {
-    //display the loading screen while we wait for request
+    //display the loading icon while we wait for request
     setState(() {
-      _isLoading = true; //progress indicator
+      _isLoadingResp = true; //progress indicator
       _outputController.text = '';
     });
 
@@ -101,9 +92,6 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       );
 
 
-      setState(() {
-        _isLoading = false;
-      });
       if (response.statusCode == 200) {
         Map<String, dynamic> responseJson = json.decode(response.body);
         String answer = responseJson['choices'][0]['text'];
@@ -121,6 +109,12 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
 
   //For the Text To Speech
   Future<void> playTextToSpeech(String text) async {
+
+    //display the loading icon while we wait for request
+    setState(() {
+      _isLoadingVoice = true; //progress indicator
+    });
+
     String apiKey = 'YOUR_API_KEY';
     String url =
         'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM';
@@ -134,14 +128,12 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       body: json.encode({
         "text": text,
         "voice_settings": {
-          "stability": .15,
-          "similarity_boost": .5
+          "stability": .2,
+          "similarity_boost": .8
         }
 
       }),
     );
-
-
 
     if (response.statusCode == 200) {
 
@@ -163,15 +155,15 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(bottom: 50),
-              child: Image.asset(
-                'assets/images/logo-no-background.png',
-                fit: BoxFit.fitHeight,
-                // set the fit property according to your needs
-                height: 70,
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.only(bottom: 50),
+            //   child: Image.asset(
+            //     'assets/images/logo-no-background.png',
+            //     fit: BoxFit.fitHeight,
+            //     // set the fit property according to your needs
+            //     height: 70,
+            //   ),
+            // ),
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 0, 0, 50.0),
               child: TextFormField(
@@ -179,20 +171,20 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
                   enabledBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF424d55)),
+                    borderSide: BorderSide(color: Palette.clrs),
                   ),
                   focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF424d55)),
+                    borderSide: BorderSide(color: Palette.clrs),
                   ),
                   labelText: 'Enter any question here...',
-                  labelStyle: const TextStyle(color: Color(0xFF424d55)),
+                  labelStyle: const TextStyle(color: Palette.clrs),
                   suffixIcon: IconButton(
                     onPressed: _inputController.clear,
                     icon: const Icon(Icons.clear),
-                    color: Palette.maincolors.shade100,
+                    color: Palette.clrs,
                   ),
                 ),
-                style: const TextStyle(color: Color(0xFF424d55)),
+                style: const TextStyle(color: Palette.clrs),
                 keyboardType: TextInputType.multiline,
                 minLines: 1,
                 maxLines: 3,
@@ -202,20 +194,20 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
               onPressed: _submitRequest,
               style: IconButton.styleFrom(
                 padding: const EdgeInsets.all(35.0),
-                foregroundColor: Palette.maincolors.shade100,
-                backgroundColor: Palette.maincolors,
-                hoverColor: Colors.green.withOpacity(0.50),
-                highlightColor: Colors.green.withOpacity(0.30),
-                side: const BorderSide(width: 2, color: Color(0xFF424d55)),
+                foregroundColor: Palette.clrs,
+                backgroundColor: Palette.clrs.shade50,
+                hoverColor: Palette.clrs.withOpacity(0.50),
+                highlightColor: Palette.clrs.withOpacity(0.30),
+                side: const BorderSide(width: 2, color: Palette.clrs),
               ),
               child: const Icon(Icons.send),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-              child: _isLoading
+              child: _isLoadingResp
                   ? const CircularProgressIndicator(
-                      backgroundColor: Color(0xFF424d55),
-                      color: Color(0xFFE9A495),
+                      backgroundColor: Color(0xFF1a1a1a),
+                      color: Palette.clrs,
                       strokeWidth: 5,
                     )
                   : null,
@@ -228,41 +220,45 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(),
                     enabledBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF424d55)),
+                      borderSide: BorderSide(color: Palette.clrs),
                     ),
                     focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF424d55)),
+                      borderSide: BorderSide(color: Palette.clrs),
                     ),
                     labelText: 'Your Answer Here',
-                    labelStyle: const TextStyle(color: Color(0xFF424d55)),
+                    labelStyle: const TextStyle(color: Palette.clrs),
                     suffixIcon: IconButton(
-                      onPressed: _outputController.clear,
-                      icon: const Icon(Icons.clear),
-                      color: Palette.maincolors.shade100,
+                      onPressed: () async {
+                        await Clipboard.setData(
+                            ClipboardData(text: _outputController.text));
+                      },
+                      icon: const Icon(Icons.copy),
+                      color: Palette.clrs,
                     ),
                   ),
                   readOnly: true,
                   maxLines: null,
-                  style: const TextStyle(color: Color(0xFF000000)),
+                  style: const TextStyle(color: Palette.clrs),
                 ),
               ),
             ),
-
-            // FloatingActionButton(
-
-            //     onPressed: playTextToSpeech(_outputController.text),
-            //     child: Icon(Icons.volume_up),
-            // )
           ],
         ),
       ), //body
       floatingActionButton: Align(
         alignment: Alignment.bottomRight,
         child: FloatingActionButton(
-          foregroundColor: const Color(0xFF000000),
-          backgroundColor: const Color(0xFFE9A495),
+          hoverColor: Colors.green.withOpacity(0.90),
+          foregroundColor: Palette.clrs.shade50,
+          backgroundColor: Palette.clrs,
           onPressed: _playOutput ,
-          child: const Icon(Icons.volume_up),
+          child:    _isLoadingVoice
+              ? const CircularProgressIndicator(
+            backgroundColor: Color(0xFF1a1a1a),
+            color: Palette.clrs,
+            strokeWidth: 5,
+          )
+              : const Icon(Icons.volume_up),
         ),
       ),
     );
