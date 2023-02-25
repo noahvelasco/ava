@@ -80,8 +80,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
     Map<String, dynamic> requestBody = {
       "model": "text-davinci-003",
       "prompt": input,
-      "temperature": .5,
-      "max_tokens": 200,
+      "temperature": .7,
+      "max_tokens": 100,
     };
 
     try {
@@ -128,8 +128,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       body: json.encode({
         "text": text,
         "voice_settings": {
-          "stability": .2,
-          "similarity_boost": .8
+          "stability": .3,
+          "similarity_boost": .3
         }
 
       }),
@@ -231,6 +231,20 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                       onPressed: () async {
                         await Clipboard.setData(
                             ClipboardData(text: _outputController.text));
+
+                        // Show a snackbar when the button is pressed
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Copied to Clipboard!',
+                              style: TextStyle(color: Color(0xFF1a1a1a))),
+                            dismissDirection: DismissDirection.horizontal,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0)
+                            ),
+                            backgroundColor: Palette.clrs,
+                            duration: const Duration(seconds: 1),
+                          )
+                        );
                       },
                       icon: const Icon(Icons.copy),
                       color: Palette.clrs,

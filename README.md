@@ -2,9 +2,9 @@
 
 # A.V.A - Advanced Virtual Agent
 
-*AVA* stands for ***advanced virtual agent*** and is meant to help anyone with quick/on-tap question handling. Created by Noah Velasco, AVA started as a personal project and will continue to be supported in hopes of one day including it in headphone support like Amazon Alexa or Google Assistant (perhaps even AR). This repository can be used by anyone however requires an API key anyone can generate from OpenAI for free. The goal is to create a plug and play virtual agent that anyone can use with minor constraints such as the overall UI/UX experience.
+*AVA* stands for ***advanced virtual agent*** and is meant to help anyone with quick/on-tap question handling. Created by Noah Velasco, AVA started as a personal project and will continue to be supported in hopes of one day conversing with it like Amazon Alexa or Google Assistant (perhaps even AR). This repository can be used by anyone however requires an API key anyone can generate for free from OpenAI and Eleven Labs for free. The goal is to create a plug and play virtual agent that anyone can use with minor constraints such as the overall UI/UX experience.
 
-***Note: This entire application was built with ChatGPT aswell as built for ChatGPT Utility and will continue being built with that principle in mind.***
+***Note: This entire application was built with ChatGPT and built for ChatGPT utility and will continue being built with that principle in mind.***
 
 ## Features & Goals
 1. Basic input and output - DONE
@@ -15,10 +15,11 @@
 6. Selection of Voice Assistant - can choose male or female and their variations. - TODO
 
 ## How to use
-1. Go to OpenAI and generate an API Key
-2. Download this repository
-3. Insert API key where it tells you to in the code (lib/main.dart)
-4. Run the Program :)
+1. Go to OpenAI and generate an API Key (Free - only needs account creation)
+2. Go to ElevenLabs, create an account, and get your API key (Free - only needs account creation)
+3. Download this repository
+4. Insert API keys where it tells you to in the code (lib/main.dart)
+5. Run the Program :)
 
 ## Build Info
 * Built and tested with Android Studio
