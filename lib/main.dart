@@ -74,14 +74,6 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       'Authorization': 'Bearer $apiKey',
     };
 
-    //ChatGPT's params can be modified here
-    // Map<String, dynamic> requestBody = {
-    //   "model": "text-davinci-003",
-    //   "prompt": input,
-    //   "temperature": .7,
-    //   "max_tokens": 100,
-    // };
-
     Map<String, dynamic> requestBody = {
       "model": "gpt-3.5-turbo",
       "messages": [
