@@ -5,7 +5,7 @@ class Palette {
   static const MaterialColor clrs = MaterialColor(
     0xFF424d55, //cement gray
     <int, Color>{
-      50: Color(0xFFe8dbce), //Nice Semi Black
+      50: Color(0xFFE7ECEF), //Nice Semi Black
       /*
       Below are unused colors - This have to be included or throws an error
        */
