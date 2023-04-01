@@ -34,16 +34,27 @@ class ChatGPTPage extends StatefulWidget {
 }
 
 class _ChatGPTPageState extends State<ChatGPTPage> {
+  var chatHistory = [
+    {"role": "system", "content": "You are a helpful assistant named ava."}
+  ]; //this array or chat history will grow as the conersation prolongs to remember the chat history for chatgpt to recall
+
   final player = AudioPlayer(); //for text to speech
   final _inputController = TextEditingController();
   final _outputController = TextEditingController();
   bool _isLoadingResp = false; //progress indicator counter for gpt response
   bool _isLoadingVoice = false; //progress indicator counter for voice
+  final FocusNode _focusNode = FocusNode();
 
+  //submits request to the chatgpt api
   void _submitRequest() async {
     FocusManager.instance.primaryFocus
         ?.unfocus(); //dismiss keyboard immediately after request sent
     String input = _inputController.text;
+    chatHistory.add({
+      "role": "user",
+      "content": _inputController.text
+    }); //add the users input to the chat history
+
     String output = await getResponseFromChatGPT(input);
     setState(() {
       _isLoadingResp = false; //progress indicator
@@ -51,8 +62,11 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
     });
   }
 
+  //
   void _playOutput() async {
-    await playTextToSpeech(_outputController.text);
+    await playTextToSpeech(_outputController.text.isEmpty
+        ? "My name is Ava. How can I assist you?" // This is the initial message before the user has sent any message
+        : _outputController.text);
 
     setState(() {
       _isLoadingVoice = false;
@@ -76,12 +90,10 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
 
     Map<String, dynamic> requestBody = {
       "model": "gpt-3.5-turbo",
-      "messages": [
-        {"role": "system", "content": "You are a helpful assistant named ava."},
-        {"role": "user", "content": input}
-      ],
+      "messages":
+          chatHistory, //chatHistory contains the history of the entire chat
       "temperature": .7, //TODO
-      "max_tokens": 100, //TODO
+      "max_tokens": 200, //TODO
     };
 
     try {
@@ -91,10 +103,18 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
         body: json.encode(requestBody),
       );
 
+      print(response.body);
+
       if (response.statusCode == 200) {
         Map<String, dynamic> responseJson = json.decode(response.body);
         String answer = responseJson['choices'][0]['message']
             ['content']; //extract the message from the response
+
+        chatHistory.add({
+          "role": "assistant",
+          "content": answer
+        }); //add the AI chat response to the history
+
         return answer;
       } else {
         return 'Request failed with status code: ${response.statusCode}';
@@ -112,7 +132,6 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
     });
 
     // String apiKey = 'YOUR_API_KEY';
-
     String url =
         'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM';
     final response = await http.post(
@@ -141,46 +160,92 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       appBar: null, // AppBar(title: const Text('AVA'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // Padding(
-            //   padding: const EdgeInsets.only(bottom: 50),
-            //   child: Image.asset(
-            //     'assets/images/logo-no-background.png',
-            //     fit: BoxFit.fitHeight,
-            //     // set the fit property according to your needs
-            //     height: 70,
-            //   ),
-            // ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 50.0),
-              child: TextFormField(
-                controller: _inputController,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  enabledBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Palette.clrs),
+              padding: const EdgeInsets.fromLTRB(0, 00, 0, 50),
+              // child: SingleChildScrollView(
+              // child:
+              // TextFormField(
+              //   controller: _outputController,
+              //   decoration: InputDecoration(
+              //     border: const OutlineInputBorder(),
+              //     enabledBorder: const OutlineInputBorder(
+              //       borderSide: BorderSide(color: Palette.clrs),
+              //     ),
+              //     focusedBorder: const OutlineInputBorder(
+              //       borderSide: BorderSide(color: Palette.clrs),
+              //     ),
+              //     labelText: 'Your Answer Here',
+              //     labelStyle: const TextStyle(color: Palette.clrs),
+              //     suffixIcon: IconButton(
+              //       onPressed: () async {
+              //         await Clipboard.setData(
+              //             ClipboardData(text: _outputController.text));
+
+              //         // Show a snackbar when the button is pressed
+              //         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              //           content: const Text('Copied to Clipboard!',
+              //               style: TextStyle(color: Color(0xFF1a1a1a))),
+              //           dismissDirection: DismissDirection.horizontal,
+              //           shape: RoundedRectangleBorder(
+              //               borderRadius: BorderRadius.circular(10.0)),
+              //           backgroundColor: Palette.clrs,
+              //           duration: const Duration(seconds: 1),
+              //         ));
+              //       },
+              //       icon: const Icon(Icons.copy),
+              //       color: Palette.clrs,
+              //     ),
+              //   ),
+              //   readOnly: true,
+              //   maxLines: null,
+              //   style: const TextStyle(color: Palette.clrs),
+              // ),
+              //),
+
+              child: Container(
+                height: 150,
+                // margin: const EdgeInsets.only(bottom: 0),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF424d55),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
                   ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Palette.clrs),
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 5,
                   ),
-                  labelText: 'Enter any question here...',
-                  labelStyle: const TextStyle(color: Palette.clrs),
-                  suffixIcon: IconButton(
-                    onPressed: _inputController.clear,
-                    icon: const Icon(Icons.clear),
-                    color: Palette.clrs,
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0xFF424d55),
+                      blurRadius: 10.0,
+                      offset: Offset(0.0, 5.0),
+                    )
+                  ],
+                ),
+
+                //Scroll through the text thats in the box with the Single Child Scroll View
+                child: SingleChildScrollView(
+                  child: Text(
+                    _outputController.text.isEmpty
+                        ? "My name is Ava. How can I assist you?" //This is the initial message before any messages are sent by user
+                        : _outputController.text,
+                    style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontStyle: FontStyle.italic),
                   ),
                 ),
-                style: const TextStyle(color: Palette.clrs),
-                keyboardType: TextInputType.multiline,
-                minLines: 1,
-                maxLines: 3,
               ),
             ),
             ElevatedButton(
@@ -199,17 +264,18 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
               padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
               child: _isLoadingResp
                   ? const CircularProgressIndicator(
-                      backgroundColor: Color(0xFF1a1a1a),
+                      backgroundColor: Color(0xFF424d55),
                       color: Palette.clrs,
                       // strokeWidth: 5,
                     )
                   : null,
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 60, 0, 0),
-              child: SingleChildScrollView(
+            SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 40, 0, 0),
                 child: TextFormField(
-                  controller: _outputController,
+                  focusNode: _focusNode,
+                  controller: _inputController,
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(),
                     enabledBorder: const OutlineInputBorder(
@@ -218,31 +284,18 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: Palette.clrs),
                     ),
-                    labelText: 'Your Answer Here',
+                    labelText: 'Enter any question here...',
                     labelStyle: const TextStyle(color: Palette.clrs),
                     suffixIcon: IconButton(
-                      onPressed: () async {
-                        await Clipboard.setData(
-                            ClipboardData(text: _outputController.text));
-
-                        // Show a snackbar when the button is pressed
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: const Text('Copied to Clipboard!',
-                              style: TextStyle(color: Color(0xFF1a1a1a))),
-                          dismissDirection: DismissDirection.horizontal,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0)),
-                          backgroundColor: Palette.clrs,
-                          duration: const Duration(seconds: 1),
-                        ));
-                      },
-                      icon: const Icon(Icons.copy),
+                      onPressed: _inputController.clear,
+                      icon: const Icon(Icons.clear),
                       color: Palette.clrs,
                     ),
                   ),
-                  readOnly: true,
-                  maxLines: null,
                   style: const TextStyle(color: Palette.clrs),
+                  keyboardType: TextInputType.multiline,
+                  minLines: 1,
+                  maxLines: 3,
                 ),
               ),
             ),
