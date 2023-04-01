@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:just_audio/just_audio.dart';
 
+import 'elevenlabs_utils.dart';
+import 'package:just_audio/just_audio.dart';
 import 'palette.dart';
 
 void main() => runApp(MyApp());
@@ -16,10 +17,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'AVA',
       theme: ThemeData(
-          primarySwatch: Palette.clrs,
-          scaffoldBackgroundColor:
-          Palette.clrs.shade50,
-          ),
+        primarySwatch: Palette.clrs,
+        scaffoldBackgroundColor: Palette.clrs.shade50,
+      ),
       debugShowCheckedModeBanner: false,
       home: const ChatGPTPage(),
     );
@@ -57,9 +57,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
     setState(() {
       _isLoadingVoice = false;
     });
-
   }
-
 
   Future<String> getResponseFromChatGPT(String input) async {
     //display the loading icon while we wait for request
@@ -68,8 +66,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       _outputController.text = '';
     });
 
-    String apiKey = 'YOUR API KEY HERE';
-    String apiUrl = 'https://api.openai.com/v1/completions';
+    // String apiKey = 'YOUR API KEY HERE';
+    String apiUrl = 'https://api.openai.com/v1/chat/completions';
 
     Map<String, String> headers = {
       'Content-Type': 'application/json',
@@ -77,11 +75,21 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
     };
 
     //ChatGPT's params can be modified here
+    // Map<String, dynamic> requestBody = {
+    //   "model": "text-davinci-003",
+    //   "prompt": input,
+    //   "temperature": .7,
+    //   "max_tokens": 100,
+    // };
+
     Map<String, dynamic> requestBody = {
-      "model": "text-davinci-003",
-      "prompt": input,
-      "temperature": .7,
-      "max_tokens": 100,
+      "model": "gpt-3.5-turbo",
+      "messages": [
+        {"role": "system", "content": "You are a helpful assistant named ava."},
+        {"role": "user", "content": input}
+      ],
+      "temperature": .7, //TODO
+      "max_tokens": 100, //TODO
     };
 
     try {
@@ -91,12 +99,10 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
         body: json.encode(requestBody),
       );
 
-
       if (response.statusCode == 200) {
         Map<String, dynamic> responseJson = json.decode(response.body);
-        String answer = responseJson['choices'][0]['text'];
-        answer = answer.substring(
-            2); // removed the newline characters from beginning of response
+        String answer = responseJson['choices'][0]['message']
+            ['content']; //extract the message from the response
         return answer;
       } else {
         return 'Request failed with status code: ${response.statusCode}';
@@ -106,16 +112,15 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
     }
   } //get response from chatgpt future function
 
-
   //For the Text To Speech
   Future<void> playTextToSpeech(String text) async {
-
     //display the loading icon while we wait for request
     setState(() {
       _isLoadingVoice = true; //progress indicator
     });
 
-    String apiKey = 'YOUR_API_KEY';
+    // String apiKey = 'YOUR_API_KEY';
+
     String url =
         'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM';
     final response = await http.post(
@@ -127,18 +132,14 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       },
       body: json.encode({
         "text": text,
-        "voice_settings": {
-          "stability": .3,
-          "similarity_boost": .3
-        }
-
+        "voice_settings": {"stability": .3, "similarity_boost": .3}
       }),
     );
 
     if (response.statusCode == 200) {
-
       final bytes = response.bodyBytes; //get the bytes ElevenLabs sent back
-      await player.setAudioSource(MyCustomSource(bytes)); //send the bytes to be read from the JustAudio library
+      await player.setAudioSource(MyCustomSource(
+          bytes)); //send the bytes to be read from the JustAudio library
       player.play(); //play the audio
     } else {
       throw Exception('Failed to load audio');
@@ -208,7 +209,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                   ? const CircularProgressIndicator(
                       backgroundColor: Color(0xFF1a1a1a),
                       color: Palette.clrs,
-                      strokeWidth: 5,
+                      // strokeWidth: 5,
                     )
                   : null,
             ),
@@ -233,18 +234,15 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                             ClipboardData(text: _outputController.text));
 
                         // Show a snackbar when the button is pressed
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('Copied to Clipboard!',
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: const Text('Copied to Clipboard!',
                               style: TextStyle(color: Color(0xFF1a1a1a))),
-                            dismissDirection: DismissDirection.horizontal,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0)
-                            ),
-                            backgroundColor: Palette.clrs,
-                            duration: const Duration(seconds: 1),
-                          )
-                        );
+                          dismissDirection: DismissDirection.horizontal,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0)),
+                          backgroundColor: Palette.clrs,
+                          duration: const Duration(seconds: 1),
+                        ));
                       },
                       icon: const Icon(Icons.copy),
                       color: Palette.clrs,
@@ -265,36 +263,16 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
           hoverColor: Colors.green.withOpacity(0.90),
           foregroundColor: Palette.clrs.shade50,
           backgroundColor: Palette.clrs,
-          onPressed: _playOutput ,
-          child:    _isLoadingVoice
+          onPressed: _playOutput,
+          child: _isLoadingVoice
               ? const CircularProgressIndicator(
-            backgroundColor: Color(0xFF1a1a1a),
-            color: Palette.clrs,
-            strokeWidth: 5,
-          )
+                  backgroundColor: Color(0xFF1a1a1a),
+                  color: Palette.clrs,
+                  strokeWidth: 5,
+                )
               : const Icon(Icons.volume_up),
         ),
       ),
     );
   }
-
 } //class chatgptpage state
-
-// Feed your own stream of bytes into the player - Taken from JustAudio package
-class MyCustomSource extends StreamAudioSource {
-  final List<int> bytes;
-  MyCustomSource(this.bytes);
-
-  @override
-  Future<StreamAudioResponse> request([int? start, int? end]) async {
-    start ??= 0;
-    end ??= bytes.length;
-    return StreamAudioResponse(
-      sourceLength: bytes.length,
-      contentLength: end - start,
-      offset: start,
-      stream: Stream.value(bytes.sublist(start, end)),
-      contentType: 'audio/mpeg',
-    );
-  }
-}
