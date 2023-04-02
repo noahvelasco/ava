@@ -47,6 +47,11 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
   bool _isLoadingVoice = false; //progress indicator counter for voice
   final FocusNode _focusNode = FocusNode();
 
+  double gptTemperature =
+      0.7; //the higher the more creative - the lower the more boring and precise
+  double voiceStability = 0.15; //the lower the more emotional/less monotone
+  double voiceClarity = 0.75; //the higher the more clear
+
   //submits request to the chatgpt api
   void _submitRequest() async {
     FocusManager.instance.primaryFocus
@@ -94,7 +99,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       "model": "gpt-3.5-turbo",
       "messages":
           chatHistory, //chatHistory contains the history of the entire chat
-      "temperature": .7, //TODO
+      "temperature": gptTemperature, //TODO
       "max_tokens": 200, //TODO
     };
 
@@ -145,7 +150,10 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       },
       body: json.encode({
         "text": text,
-        "voice_settings": {"stability": .15, "similarity_boost": .75}
+        "voice_settings": {
+          "stability": voiceStability,
+          "similarity_boost": voiceClarity
+        }
       }),
     );
 
@@ -223,6 +231,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+
     /*
   ----------------- UI/UX Constants for widgets below:
   */
@@ -357,9 +366,70 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                 ),
               ),
             ),
+            IconButton(
+              icon: const Icon(Icons.settings, color: Palette.clrs),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    return Container(
+                      // padding: EdgeInsets.only(top: 40.0),
+                      height: 230.0,
+                      child: Column(
+                        children: [
+                          const Text(
+                              "GPT Temperature (Higher = More Creative)"),
+                          Slider(
+                            divisions: 20,
+                            value: gptTemperature,
+                            label: gptTemperature.toString(),
+                            onChanged: (value) {
+                              setState(() {
+                                gptTemperature = value;
+                              });
+                            },
+                            min: 0.0,
+                            max: 1.0,
+                          ),
+                          const Text(
+                              "Voice Stability (Lower = More Emotional)"),
+                          Slider(
+                            divisions: 20,
+                            value: voiceStability,
+                            label: voiceStability.toString(),
+                            onChanged: (double value) {
+                              setState(() {
+                                voiceStability = value;
+                              });
+                            },
+                            min: 0.0,
+                            max: 1.0,
+                          ),
+                          const Text("Voice Clarity (Higher = More Clear)"),
+                          Slider(
+                            divisions: 20,
+                            value: voiceClarity,
+                            label: voiceClarity.toString(),
+                            onChanged: (double value) {
+                              setState(() {
+                                voiceClarity = value;
+                              });
+                            },
+                            min: 0.0,
+                            max: 1.0,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ],
         ),
-      ), //body
+      ),
+
+      //body
       floatingActionButton: Align(
         alignment: Alignment.bottomRight,
         child: FloatingActionButton(
