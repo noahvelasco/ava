@@ -82,7 +82,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       _outputController.text = '';
     });
 
-    // String apiKey = 'YOUR API KEY HERE';
+    String apiKey = 'YOUR API KEY HERE';
     String apiUrl = 'https://api.openai.com/v1/chat/completions';
 
     Map<String, String> headers = {
@@ -133,7 +133,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       _isLoadingVoice = true; //progress indicator
     });
 
-    // String apiKey = 'YOUR_API_KEY';
+    String apiKey = 'YOUR_API_KEY';
     String url =
         'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM';
     final response = await http.post(
@@ -218,6 +218,11 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
 
   @override
   Widget build(BuildContext context) {
+    //Lock the app into portrait mode
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     /*
   ----------------- UI/UX Constants for widgets below:
   */
@@ -238,7 +243,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Padding(
-              padding: const EdgeInsets.fromLTRB(0, 10, 0, 40),
+              padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
               child: GestureDetector(
                 onTap: _changeStateOut,
                 child: AnimatedContainer(
@@ -246,7 +251,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                   height: 150,
                   width: 350,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 50, vertical: 50),
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFFFFF),
                     borderRadius: BorderRadius.circular(30),
@@ -272,44 +277,37 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                           : _outputController.text,
                       style: const TextStyle(
                           fontSize: 16,
-                          color: Colors.black,
+                          color: Colors.black54,
                           fontStyle: FontStyle.italic),
                     ),
                   ),
                 ),
               ),
             ),
-            // ElevatedButton(
-            //   onPressed: _submitRequest,
-            //   style: IconButton.styleFrom(
-            //     padding: const EdgeInsets.all(35.0),
-            //     foregroundColor: Palette.clrs,
-            //     backgroundColor: Palette.clrs.shade50,
-            //     hoverColor: Palette.clrs.withOpacity(0.50),
-            //     highlightColor: Palette.clrs.withOpacity(0.30),
-            //     side: const BorderSide(width: 2, color: Palette.clrs),
-            //   ),
-            //   child: const Icon(Icons.send),
-            // ),
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 50.0),
-              height: 1.0,
-              color: Palette.clrs,
+            const Padding(
+              padding: EdgeInsets.only(top: 15.0),
+              child: Text(
+                'TAP TO COPY',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey,
+                ),
+              ),
             ),
-
             Padding(
-              padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+              padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
               child: _isLoadingResp
                   ? const CircularProgressIndicator(
                       backgroundColor: Color(0xFF424d55),
-                      color: Color(0xFFe8dbce),
+                      color: Color(0xFFE7ECEF),
                     )
                   : null,
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
               child: GestureDetector(
-                onTap: _submitRequest, // add 'changestatein'
+                onDoubleTap: _submitRequest, // add 'changestatein'
                 onLongPress: _inputController.clear,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
@@ -333,26 +331,11 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                           inset: isPressedIn),
                     ],
                   ),
-
-                  // padding: const EdgeInsets.fromLTRB(0, 40, 0, 0),
                   child: TextField(
                     focusNode: _focusNode,
                     controller: _inputController,
                     decoration: const InputDecoration.collapsed(
-                      // border: const OutlineInputBorder(),
-                      // enabledBorder: const OutlineInputBorder(
-                      //   borderSide: BorderSide(color: Palette.clrs),
-                      // ),
-                      // focusedBorder: const OutlineInputBorder(
-                      //   borderSide: BorderSide(color: Palette.clrs),
-                      // ),
                       hintText: ' Enter any question here...',
-                      // labelStyle: const TextStyle(color: Palette.clrs),
-                      // suffixIcon: IconButton(
-                      //   onPressed: _inputController.clear,
-                      //   icon: const Icon(Icons.clear),
-                      //   color: Palette.clrs,
-                      // ),
                     ),
                     style: const TextStyle(color: Palette.clrs),
                     keyboardType: TextInputType.multiline,
@@ -361,17 +344,30 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                   ),
                 ),
               ),
-            )
+            ),
+            const Padding(
+              padding: EdgeInsets.only(top: 30.0),
+              child: Text(
+                'DOUBLE TAP TO ASK\n\nHOLD TO CLEAR\n',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
           ],
         ),
       ), //body
       floatingActionButton: Align(
         alignment: Alignment.bottomRight,
         child: FloatingActionButton(
+          elevation: 30.0,
           hoverColor:
               const Color.fromARGB(255, 255, 255, 255).withOpacity(0.90),
-          foregroundColor: Palette.clrs.shade50,
-          backgroundColor: Palette.clrs,
+          foregroundColor: Palette.clrs,
+          backgroundColor: Palette.clrs.shade50,
           onPressed: _playOutput,
           child: _isLoadingVoice
               ? const CircularProgressIndicator(
