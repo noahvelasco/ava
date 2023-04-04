@@ -18,10 +18,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'AVA',
-      theme: ThemeData(
-        primarySwatch: Palette.clrs,
-        scaffoldBackgroundColor: Palette.clrs.shade50,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blueGrey
+          // scaffoldBackgroundColor: Colors.transparent,
+          ),
       debugShowCheckedModeBanner: false,
       home: const ChatGPTPage(),
     );
@@ -47,13 +46,20 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
   bool _isLoadingVoice = false; //progress indicator counter for voice
   final FocusNode _focusNode = FocusNode();
 
-  double gptTemperature =
+  double _gptTemperature =
       0.7; //the higher the more creative - the lower the more boring and precise
   double voiceStability = 0.15; //the lower the more emotional/less monotone
   double voiceClarity = 0.75; //the higher the more clear
 
   //submits request to the chatgpt api
   void _submitRequest() async {
+    //set the output container back to its original state => unpressed look
+    Timer(const Duration(milliseconds: 250), () {
+      setState(() {
+        isPressedIn = false;
+      });
+    });
+
     FocusManager.instance.primaryFocus
         ?.unfocus(); //dismiss keyboard immediately after request sent
     String input = _inputController.text;
@@ -87,7 +93,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       _outputController.text = '';
     });
 
-    String apiKey = 'YOUR API KEY HERE';
+    String apiKey = 'YOUR_API_KEY';
     String apiUrl = 'https://api.openai.com/v1/chat/completions';
 
     Map<String, String> headers = {
@@ -99,7 +105,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       "model": "gpt-3.5-turbo",
       "messages":
           chatHistory, //chatHistory contains the history of the entire chat
-      "temperature": gptTemperature, //TODO
+      "temperature": _gptTemperature, //TODO
       "max_tokens": 200, //TODO
     };
 
@@ -138,7 +144,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
       _isLoadingVoice = true; //progress indicator
     });
 
-    String apiKey = 'YOUR_API_KEY';
+    String apiKey = "YOUR_API_KEY";
     String url =
         'https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM';
     final response = await http.post(
@@ -217,11 +223,13 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
     });
 
     //set the input container back to its original state => unpressed look
-    Timer(const Duration(milliseconds: 250), () {
+    Timer(const Duration(milliseconds: 300), () {
       setState(() {
         isPressedIn = false;
       });
     });
+
+    _submitRequest();
   }
 
   @override
@@ -237,197 +245,212 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
   */
 
     //for the outputbox
-    Offset distOut = isPressedOut ? const Offset(10, 10) : const Offset(28, 28);
+    Offset distOut = isPressedOut ? const Offset(10, 10) : const Offset(2, 2);
     double blurOut = isPressedOut ? 5.0 : 30.0;
 
     //for the input box
-    Offset distIn = isPressedIn ? const Offset(10, 10) : const Offset(28, 28);
+    Offset distIn = isPressedIn ? const Offset(10, 10) : const Offset(2, 2);
     double blurIn = isPressedIn ? 5.0 : 30.0;
 
     return Scaffold(
       appBar: null, // AppBar(title: const Text('AVA'), centerTitle: true),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-              child: GestureDetector(
-                onTap: _changeStateOut,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  height: 150,
-                  width: 350,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFFFFF),
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                          blurRadius: blurOut,
-                          offset: -distOut,
-                          color: Colors.white,
-                          inset: isPressedOut),
-                      BoxShadow(
-                          blurRadius: blurOut,
-                          offset: distOut,
-                          color: const Color(0xFFA7A9AF),
-                          inset: isPressedOut),
-                    ],
-                  ),
-
-                  //Scroll through the text thats in the box with the Single Child Scroll View
-                  child: SingleChildScrollView(
-                    child: Text(
-                      _outputController.text.isEmpty
-                          ? "My name is Ava. How can I assist you?" //This is the initial message before any messages are sent by user
-                          : _outputController.text,
-                      style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.black54,
-                          fontStyle: FontStyle.italic),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(top: 15.0),
-              child: Text(
-                'TAP TO COPY',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
-              child: _isLoadingResp
-                  ? const CircularProgressIndicator(
-                      backgroundColor: Color(0xFF424d55),
-                      color: Color(0xFFE7ECEF),
-                    )
-                  : null,
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-              child: GestureDetector(
-                onDoubleTap: _submitRequest, // add 'changestatein'
-                onLongPress: _inputController.clear,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  height: 150,
-                  width: 350,
-                  padding: const EdgeInsets.only(
-                      left: 20, top: 20, bottom: 50, right: 50),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFFFFF),
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                          blurRadius: blurIn,
-                          offset: -distIn,
-                          color: Colors.white,
-                          inset: isPressedIn),
-                      BoxShadow(
-                          blurRadius: blurIn,
-                          offset: distIn,
-                          color: const Color(0xFFA7A9AF),
-                          inset: isPressedIn),
-                    ],
-                  ),
-                  child: TextField(
-                    focusNode: _focusNode,
-                    controller: _inputController,
-                    decoration: const InputDecoration.collapsed(
-                      hintText: ' Enter any question here...',
-                    ),
-                    style: const TextStyle(color: Palette.clrs),
-                    keyboardType: TextInputType.multiline,
-                    minLines: 1,
-                    maxLines: 3,
-                  ),
-                ),
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.only(top: 30.0),
-              child: Text(
-                'DOUBLE TAP TO ASK\n\nHOLD TO CLEAR\n',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.settings, color: Palette.clrs),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) {
-                    return Container(
-                      // padding: EdgeInsets.only(top: 40.0),
-                      height: 230.0,
-                      child: Column(
-                        children: [
-                          const Text(
-                              "GPT Temperature (Higher = More Creative)"),
-                          Slider(
-                            divisions: 20,
-                            value: gptTemperature,
-                            label: gptTemperature.toString(),
-                            onChanged: (value) {
-                              setState(() {
-                                gptTemperature = value;
-                              });
-                            },
-                            min: 0.0,
-                            max: 1.0,
-                          ),
-                          const Text(
-                              "Voice Stability (Lower = More Emotional)"),
-                          Slider(
-                            divisions: 20,
-                            value: voiceStability,
-                            label: voiceStability.toString(),
-                            onChanged: (double value) {
-                              setState(() {
-                                voiceStability = value;
-                              });
-                            },
-                            min: 0.0,
-                            max: 1.0,
-                          ),
-                          const Text("Voice Clarity (Higher = More Clear)"),
-                          Slider(
-                            divisions: 20,
-                            value: voiceClarity,
-                            label: voiceClarity.toString(),
-                            onChanged: (double value) {
-                              setState(() {
-                                voiceClarity = value;
-                              });
-                            },
-                            min: 0.0,
-                            max: 1.0,
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ],
+      body: Stack(children: [
+        const Positioned.fill(
+          bottom: 0,
+          left: 0,
+          child: Image(
+            image: AssetImage('assets/david1.png'),
+            fit: BoxFit.cover,
+          ),
         ),
-      ),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                child: GestureDetector(
+                  onTap: _changeStateOut,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    height: 150,
+                    width: 350,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFFFF),
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                            blurRadius: blurOut,
+                            offset: -distOut,
+                            color: Colors.white,
+                            inset: isPressedOut),
+                        BoxShadow(
+                            blurRadius: blurOut,
+                            offset: distOut,
+                            color: const Color.fromARGB(255, 100, 100, 100),
+                            inset: isPressedOut),
+                      ],
+                    ),
+
+                    //Scroll through the text thats in the box with the Single Child Scroll View
+                    child: SingleChildScrollView(
+                      child: Text(
+                        _outputController.text.isEmpty
+                            ? "My name is Ava. How can I assist you?" //This is the initial message before any messages are sent by user
+                            : _outputController.text,
+                        style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black54,
+                            fontStyle: FontStyle.italic),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.only(top: 10.0, left: 60),
+                  child: Text(
+                    'TAP TO COPY',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
+                child: _isLoadingResp
+                    ? const CircularProgressIndicator(
+                        backgroundColor: Color(0xFF424d55),
+                        color: Color(0xFFE7ECEF),
+                      )
+                    : null,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                child: GestureDetector(
+                  onTap: _changeStateIn,
+                  onLongPress: _inputController.clear,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 100),
+                    height: 150,
+                    width: 350,
+                    padding: const EdgeInsets.only(
+                        left: 20, top: 20, bottom: 50, right: 50),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFFFF),
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                            blurRadius: blurIn,
+                            offset: -distIn,
+                            color: Colors.white,
+                            inset: isPressedIn),
+                        BoxShadow(
+                            blurRadius: blurIn,
+                            offset: distIn,
+                            color: const Color.fromARGB(255, 100, 100, 100),
+                            inset: isPressedIn),
+                      ],
+                    ),
+                    child: TextField(
+                      focusNode: _focusNode,
+                      controller: _inputController,
+                      decoration: const InputDecoration.collapsed(
+                        hintText: ' Enter any question here...',
+                      ),
+                      style: const TextStyle(color: Palette.clrs),
+                      keyboardType: TextInputType.multiline,
+                      minLines: 1,
+                      maxLines: 3,
+                    ),
+                  ),
+                ),
+              ),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.only(top: 20.0, left: 60),
+                  child: Text(
+                    'DOUBLE TAP TO ASK\n\nHOLD TO CLEAR\n',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.settings, color: Colors.white),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return Container(
+                        // padding: EdgeInsets.only(top: 40.0),
+                        height: 230.0,
+                        child: Column(
+                          children: [
+                            const Text(
+                                "GPT Temperature (Higher = More Creative)"),
+                            Slider(
+                              divisions: 20,
+                              value: _gptTemperature,
+                              label: _gptTemperature.toString(),
+                              onChanged: (double value) {
+                                setState(() {
+                                  _gptTemperature = value;
+                                });
+                              },
+                              min: 0.0,
+                              max: 1.0,
+                            ),
+                            const Text(
+                                "Voice Stability (Lower = More Emotional)"),
+                            Slider(
+                              divisions: 20,
+                              value: voiceStability,
+                              label: voiceStability.toString(),
+                              onChanged: (double value) {
+                                setState(() {
+                                  voiceStability = value;
+                                });
+                              },
+                              min: 0.0,
+                              max: 1.0,
+                            ),
+                            const Text("Voice Clarity (Higher = More Clear)"),
+                            Slider(
+                              divisions: 20,
+                              value: voiceClarity,
+                              label: voiceClarity.toString(),
+                              onChanged: (double value) {
+                                setState(() {
+                                  voiceClarity = value;
+                                });
+                              },
+                              min: 0.0,
+                              max: 1.0,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ]),
 
       //body
       floatingActionButton: Align(
