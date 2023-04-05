@@ -4,6 +4,7 @@ import 'package:flutter/material.dart' hide BoxDecoration, BoxShadow;
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
+import 'package:animate_gradient/animate_gradient.dart';
 
 import 'elevenlabs_utils.dart';
 import 'package:just_audio/just_audio.dart';
@@ -18,9 +19,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'AVA',
-      theme: ThemeData(primarySwatch: Colors.blueGrey
-          // scaffoldBackgroundColor: Colors.transparent,
-          ),
+      theme: ThemeData(
+        primarySwatch: Colors.blueGrey,
+        useMaterial3: true,
+
+        // scaffoldBackgroundColor: Colors.transparent,
+      ),
       debugShowCheckedModeBanner: false,
       home: const ChatGPTPage(),
     );
@@ -202,6 +206,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
 
     // Show a snackbar when the button is pressed
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      showCloseIcon: true,
       content: Text('Copied to Clipboard!',
           style: TextStyle(color: Color(0xFFFFFFFF))),
       dismissDirection: DismissDirection.horizontal,
@@ -245,47 +250,51 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
   */
 
     //for the outputbox
-    Offset distOut = isPressedOut ? const Offset(10, 10) : const Offset(2, 2);
+    Offset distOut = isPressedOut ? const Offset(10, 10) : const Offset(28, 28);
     double blurOut = isPressedOut ? 5.0 : 30.0;
 
     //for the input box
-    Offset distIn = isPressedIn ? const Offset(10, 10) : const Offset(2, 2);
+    Offset distIn = isPressedIn ? const Offset(10, 10) : const Offset(28, 28);
     double blurIn = isPressedIn ? 5.0 : 30.0;
 
     return Scaffold(
       appBar: null, // AppBar(title: const Text('AVA'), centerTitle: true),
       body: Stack(children: [
-        const Positioned.fill(
-          bottom: 0,
-          left: 0,
-          child: Image(
-            image: AssetImage('assets/david1.png'),
-            fit: BoxFit.cover,
-          ),
+        AnimateGradient(
+          primaryBegin: Alignment.topLeft,
+          primaryEnd: Alignment.topRight,
+          secondaryBegin: Alignment.bottomCenter,
+          secondaryEnd: Alignment.bottomLeft,
+          duration: const Duration(seconds: 4),
+          primaryColors: const [
+            Colors.black,
+            Colors.grey,
+            Colors.white,
+          ],
+          secondaryColors: const [
+            Colors.grey,
+            Colors.white,
+            Colors.black,
+          ],
         ),
         Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
                 child: GestureDetector(
                   onTap: _changeStateOut,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     height: 150,
                     width: 350,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 10),
+                    padding: const EdgeInsets.only(
+                        left: 20, top: 20, bottom: 50, right: 50),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFFFFF),
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(10),
                       boxShadow: [
-                        BoxShadow(
-                            blurRadius: blurOut,
-                            offset: -distOut,
-                            color: Colors.white,
-                            inset: isPressedOut),
                         BoxShadow(
                             blurRadius: blurOut,
                             offset: distOut,
@@ -310,9 +319,9 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                 ),
               ),
               const Align(
-                alignment: Alignment.centerLeft,
+                alignment: Alignment.center,
                 child: Padding(
-                  padding: EdgeInsets.only(top: 10.0, left: 60),
+                  padding: EdgeInsets.only(top: 10.0),
                   child: Text(
                     'TAP TO COPY',
                     style: TextStyle(
@@ -324,16 +333,16 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
+                padding: const EdgeInsets.fromLTRB(40, 20, 40, 20),
                 child: _isLoadingResp
-                    ? const CircularProgressIndicator(
+                    ? const LinearProgressIndicator(
                         backgroundColor: Color(0xFF424d55),
                         color: Color(0xFFE7ECEF),
                       )
                     : null,
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                 child: GestureDetector(
                   onTap: _changeStateIn,
                   onLongPress: _inputController.clear,
@@ -345,13 +354,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                         left: 20, top: 20, bottom: 50, right: 50),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFFFFF),
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(10),
                       boxShadow: [
-                        BoxShadow(
-                            blurRadius: blurIn,
-                            offset: -distIn,
-                            color: Colors.white,
-                            inset: isPressedIn),
                         BoxShadow(
                             blurRadius: blurIn,
                             offset: distIn,
@@ -374,12 +378,12 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                 ),
               ),
               const Align(
-                alignment: Alignment.centerLeft,
+                alignment: Alignment.center,
                 child: Padding(
-                  padding: EdgeInsets.only(top: 20.0, left: 60),
+                  padding: EdgeInsets.only(top: 20.0),
                   child: Text(
-                    'DOUBLE TAP TO ASK\n\nHOLD TO CLEAR\n',
-                    textAlign: TextAlign.left,
+                    'TAP TO ASK\n\nHOLD TO CLEAR\n',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 10,
                       fontStyle: FontStyle.italic,
@@ -393,53 +397,78 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                 onPressed: () {
                   showModalBottomSheet(
                     context: context,
+                    backgroundColor: Colors.white,
+                    shape: const RoundedRectangleBorder(
+                      side: BorderSide(
+                          color: Colors.white, strokeAlign: 5, width: 2.5),
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(50)),
+                    ),
                     builder: (context) {
                       return Container(
-                        // padding: EdgeInsets.only(top: 40.0),
+                        padding: const EdgeInsets.only(top: 20.0),
                         height: 230.0,
                         child: Column(
                           children: [
                             const Text(
                                 "GPT Temperature (Higher = More Creative)"),
-                            Slider(
-                              divisions: 20,
-                              value: _gptTemperature,
-                              label: _gptTemperature.toString(),
-                              onChanged: (double value) {
-                                setState(() {
-                                  _gptTemperature = value;
-                                });
-                              },
-                              min: 0.0,
-                              max: 1.0,
-                            ),
+                            StatefulBuilder(builder: (context, setState) {
+                              return Slider(
+                                activeColor:
+                                    Colors.amber, // set the active color
+                                inactiveColor:
+                                    Colors.grey, // set the inactive color
+                                divisions: 20,
+                                value: _gptTemperature,
+                                label: _gptTemperature.toString(),
+                                onChanged: (double value) {
+                                  setState(() {
+                                    _gptTemperature = value;
+                                  });
+                                },
+                                min: 0.0,
+                                max: 1.0,
+                              );
+                            }),
                             const Text(
-                                "Voice Stability (Lower = More Emotional)"),
-                            Slider(
-                              divisions: 20,
-                              value: voiceStability,
-                              label: voiceStability.toString(),
-                              onChanged: (double value) {
-                                setState(() {
-                                  voiceStability = value;
-                                });
-                              },
-                              min: 0.0,
-                              max: 1.0,
-                            ),
+                                "Voice Stability (Lower = More Expressive)"),
+                            StatefulBuilder(builder: (context, setState) {
+                              return Slider(
+                                activeColor:
+                                    Colors.amber, // set the active color
+                                inactiveColor:
+                                    Colors.grey, // set the inactive color
+                                divisions: 20,
+                                value: voiceStability,
+                                label: voiceStability.toString(),
+                                onChanged: (double value) {
+                                  setState(() {
+                                    voiceStability = value;
+                                  });
+                                },
+                                min: 0.0,
+                                max: 1.0,
+                              );
+                            }),
                             const Text("Voice Clarity (Higher = More Clear)"),
-                            Slider(
-                              divisions: 20,
-                              value: voiceClarity,
-                              label: voiceClarity.toString(),
-                              onChanged: (double value) {
-                                setState(() {
-                                  voiceClarity = value;
-                                });
-                              },
-                              min: 0.0,
-                              max: 1.0,
-                            ),
+                            StatefulBuilder(builder: (context, setState) {
+                              return Slider(
+                                activeColor:
+                                    Colors.amber, // set the active color
+                                inactiveColor:
+                                    Colors.grey, // set the inactive color
+                                divisions: 20,
+                                value: voiceClarity,
+                                label: voiceClarity.toString(),
+                                onChanged: (double value) {
+                                  setState(() {
+                                    voiceClarity = value;
+                                  });
+                                },
+                                min: 0.0,
+                                max: 1.0,
+                              );
+                            }),
                           ],
                         ),
                       );
