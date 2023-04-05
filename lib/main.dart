@@ -21,10 +21,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'AVA',
       theme: ThemeData(
-        primarySwatch: Colors.blueGrey,
         useMaterial3: true,
-
-        // scaffoldBackgroundColor: Colors.transparent,
+        primaryColor:
+            Colors.white, // scaffoldBackgroundColor: Colors.transparent,
       ),
       debugShowCheckedModeBanner: false,
       home: const ChatGPTPage(),
