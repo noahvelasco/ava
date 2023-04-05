@@ -35,6 +35,7 @@ dependencies:
   audioplayers: ^3.0.1
   flutter_inset_box_shadow: ^1.0.8
   animate_gradient: ^0.0.2
+  google_fonts: ^4.0.3
   flutter:
     sdk: flutter
 
@@ -66,7 +67,7 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/david1.png
+    - assets\images\logo-no-background.png
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

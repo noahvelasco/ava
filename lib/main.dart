@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'package:flutter_inset_box_shadow/flutter_inset_box_shadow.dart';
 import 'package:animate_gradient/animate_gradient.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'elevenlabs_utils.dart';
 import 'package:just_audio/just_audio.dart';
@@ -173,7 +174,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
           bytes)); //send the bytes to be read from the JustAudio library
       player.play(); //play the audio
     } else {
-      throw Exception('Failed to load audio');
+      // throw Exception('Failed to load audio');
+      return;
     }
   } //getResponse from Eleven Labs
 
@@ -267,14 +269,12 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
           secondaryEnd: Alignment.bottomLeft,
           duration: const Duration(seconds: 4),
           primaryColors: const [
-            Colors.black,
-            Colors.grey,
+            Color(0xFFE9A495),
             Colors.white,
           ],
           secondaryColors: const [
-            Colors.grey,
             Colors.white,
-            Colors.black,
+            Color(0xFFE9A495),
           ],
         ),
         Center(
@@ -282,7 +282,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                padding: const EdgeInsets.fromLTRB(0, 15, 0, 0),
                 child: GestureDetector(
                   onTap: _changeStateOut,
                   child: AnimatedContainer(
@@ -290,7 +290,7 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                     height: 150,
                     width: 350,
                     padding: const EdgeInsets.only(
-                        left: 20, top: 20, bottom: 50, right: 50),
+                        left: 20, top: 5, bottom: 5, right: 0),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFFFFF),
                       borderRadius: BorderRadius.circular(10),
@@ -304,16 +304,21 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                     ),
 
                     //Scroll through the text thats in the box with the Single Child Scroll View
-                    child: SingleChildScrollView(
-                      child: Text(
-                        _outputController.text.isEmpty
-                            ? "My name is Ava. How can I assist you?" //This is the initial message before any messages are sent by user
-                            : _outputController.text,
-                        style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black54,
-                            fontStyle: FontStyle.italic),
-                      ),
+                    child: Scrollbar(
+                      thumbVisibility: true,
+                      thickness: 5.0,
+                      child: SingleChildScrollView(
+                          padding: const EdgeInsets.only(right: 20),
+                          child: Text(
+                            _outputController.text.isEmpty
+                                ? "My name is Ava. How can I assist you?" //This is the initial message before any messages are sent by user
+                                : _outputController.text,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          )),
                     ),
                   ),
                 ),
@@ -336,8 +341,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                 padding: const EdgeInsets.fromLTRB(40, 20, 40, 20),
                 child: _isLoadingResp
                     ? const LinearProgressIndicator(
-                        backgroundColor: Color(0xFF424d55),
-                        color: Color(0xFFE7ECEF),
+                        backgroundColor: Colors.white,
+                        color: Color(0xFFE9A495),
                       )
                     : null,
               ),
@@ -364,12 +369,17 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                       ],
                     ),
                     child: TextField(
+                      cursorColor: Colors.black,
+                      cursorWidth: 1,
+                      cursorRadius: const Radius.circular(5),
                       focusNode: _focusNode,
                       controller: _inputController,
                       decoration: const InputDecoration.collapsed(
-                        hintText: ' Enter any question here...',
+                        hintText: 'Enter any question here...',
                       ),
-                      style: const TextStyle(color: Palette.clrs),
+                      style: GoogleFonts.montserrat(
+                        fontSize: 20,
+                      ),
                       keyboardType: TextInputType.multiline,
                       minLines: 1,
                       maxLines: 3,
@@ -400,22 +410,30 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                     backgroundColor: Colors.white,
                     shape: const RoundedRectangleBorder(
                       side: BorderSide(
-                          color: Colors.white, strokeAlign: 5, width: 2.5),
+                          color: Color(0xFFE9A495), strokeAlign: 5, width: 2.5),
                       borderRadius:
                           BorderRadius.vertical(top: Radius.circular(50)),
                     ),
                     builder: (context) {
                       return Container(
                         padding: const EdgeInsets.only(top: 20.0),
-                        height: 230.0,
+                        height: 500.0,
                         child: Column(
                           children: [
+                            const Padding(
+                              padding: EdgeInsets.only(bottom: 15),
+                              child: Image(
+                                image: AssetImage(
+                                    'assets/images/logo-no-background.png'), // Replace this with the path to your image file
+                                width: 400.0, // Set the width of the image
+                              ),
+                            ),
                             const Text(
                                 "GPT Temperature (Higher = More Creative)"),
                             StatefulBuilder(builder: (context, setState) {
                               return Slider(
-                                activeColor:
-                                    Colors.amber, // set the active color
+                                activeColor: const Color(
+                                    0xFFE9A495), // set the active color
                                 inactiveColor:
                                     Colors.grey, // set the inactive color
                                 divisions: 20,
@@ -434,8 +452,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                                 "Voice Stability (Lower = More Expressive)"),
                             StatefulBuilder(builder: (context, setState) {
                               return Slider(
-                                activeColor:
-                                    Colors.amber, // set the active color
+                                activeColor: const Color(
+                                    0xFFE9A495), // set the active color
                                 inactiveColor:
                                     Colors.grey, // set the inactive color
                                 divisions: 20,
@@ -453,8 +471,8 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                             const Text("Voice Clarity (Higher = More Clear)"),
                             StatefulBuilder(builder: (context, setState) {
                               return Slider(
-                                activeColor:
-                                    Colors.amber, // set the active color
+                                activeColor: const Color(
+                                    0xFFE9A495), // set the active color
                                 inactiveColor:
                                     Colors.grey, // set the inactive color
                                 divisions: 20,
@@ -469,6 +487,17 @@ class _ChatGPTPageState extends State<ChatGPTPage> {
                                 max: 1.0,
                               );
                             }),
+                            const Padding(
+                                padding: EdgeInsets.only(top: 40),
+                                child: Align(
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      "Created by Noah Velasco & ChatGPT, 2023",
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey,
+                                          fontStyle: FontStyle.italic),
+                                    )))
                           ],
                         ),
                       );
